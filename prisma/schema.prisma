@@ -13,41 +13,63 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-  id String @unique @default(cuid())
-  name String 
-  password String
-  email String @unique
-  createdAt DateTime @default(now())
+model User {
+  userId      String       @unique @default(cuid())
+  username    String       @unique
+  name        String
+  password    String
+  email       String       @unique
+  createdAt   DateTime     @default(now())
+  submissions Submission[]
+  contests    Contest[]
 }
 
-model Problem{
-  problemId String @unique @default(cuid())
-  createdAt DateTime @default(now())
-  contestId String?
-  contest Contest? @relation(fields: [contestId], references: [contestId])
+model Problem {
+  problemId   String     @unique @default(cuid())
+  createdAt   DateTime   @default(now())
+  contestId   String?
+  title       String
+  description String
+  contest     Contest?   @relation(fields: [contestId], references: [contestId])
+  difficulty  Difficulty
+  points      Int?
 }
-model Submission{
-  submissionId String @unique @default(cuid())
-  language String
-  problemId String
-  code String
-  contestId String?
-  status SubmissionResult @default(PENDING)
-  contest Contest? @relation(fields: [contestId], references: [contestId])
+
+model Submission {
+  submissionId String           @unique @default(cuid())
+  language     String
+  problemId    String
+  userId       String
+  createdAt    DateTime         @default(now())
+  code         String
+  fullcode     String
+  contestId    String?
+  status       SubmissionResult @default(PENDING)
+  contest      Contest?         @relation(fields: [contestId], references: [contestId])
+  user         User             @relation(fields: [userId], references: [userId])
 }
-model Contest{
-  contestId String @unique
-  createdAt DateTime @default(now())
-  startTime DateTime
-  endTime DateTime
-  hidden Boolean @default(true)
+
+model Contest {
+  contestId   String       @unique
+  createdAt   DateTime     @default(now())
+  startTime   DateTime?
+  endTime     DateTime?
+  hidden      Boolean      @default(true)
   description String?
   submissions Submission[]
-  problems Problem[]
+  problems    Problem[]
+  adminId     String
+  admin       User         @relation(fields: [adminId], references: [userId])
 }
-enum SubmissionResult{
+
+enum SubmissionResult {
   AC
   FAILED
   PENDING
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
 }
