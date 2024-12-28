@@ -4,17 +4,15 @@ import ProblemsList from "@/components/ProblemsList";
 import Navbar from "@/components/Navbar";
 
 async function getProblems() {
-//   const problems = await prisma.problem.findMany({
-//     where: {
-//       contestId: null, // Only show problems not in contests
-//       hidden: false
-//     },
-//     orderBy: {
-//       createdAt: 'desc'
-//     }
-//   });
-//   return problems;
-return [];
+  const problems = await prisma.problem.findMany({
+    where: {
+      hidden: false
+    },
+    orderBy: {
+      createdAt: 'desc'
+    }
+  });
+  return problems;
 }
 
 export default async function ProblemsPage() {

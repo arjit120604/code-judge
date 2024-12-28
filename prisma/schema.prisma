@@ -33,6 +33,17 @@ model Problem {
   contest     Contest?   @relation(fields: [contestId], references: [contestId])
   difficulty  Difficulty
   points      Int?
+  testcases   Testcase[]
+  hidden      Boolean    @default(false)
+}
+
+model Testcase {
+  testcaseId String  @unique
+  input      String
+  output     String
+  problemId  String
+  problem    Problem @relation(fields: [problemId], references: [problemId])
+  hidden     Boolean @default(true)
 }
 
 model Submission {
@@ -50,11 +61,12 @@ model Submission {
 }
 
 model Contest {
-  contestId   String       @unique
+  title String
+  contestId   String       @unique @default(cuid())
   createdAt   DateTime     @default(now())
   startTime   DateTime?
   endTime     DateTime?
-  hidden      Boolean      @default(true)
+  hidden      Boolean      @default(false)
   description String?
   submissions Submission[]
   problems    Problem[]

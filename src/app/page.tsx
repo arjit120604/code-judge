@@ -1,29 +1,13 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import prisma from "@/lib/prisma";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import Problems from "./problems/page";
 
-async function getProblems() {
-//   const problems = await prisma.problem.findMany({
-//     orderBy: {
-//       createdAt: 'desc'
-//     },
-//     take: 6,
-//     where: {
-//       hidden: false
-//     }
-//   });
-//   return problems;
-return [];
-}
-
 export default async function Home() {
-  const [session, problems] = await Promise.all([
+  const [session] = await Promise.all([
     getServerSession(),
-    getProblems()
   ]);
 
   return (
@@ -64,14 +48,14 @@ export default async function Home() {
               ))}
             </div>
           }>
-            <Problems problems={problems} />
+            <Problems />
           </Suspense>
         </section>
 
         {session && (
           <section className="mt-12 text-center">
             <h2 className="text-2xl font-semibold mb-4">Ready for a Challenge?</h2>
-            <Link href="/contests">
+            <Link href="/contest">
               <Button size="lg">View Active Contests</Button>
             </Link>
           </section>

@@ -34,7 +34,11 @@ const handler = NextAuth({
             if (!passwordMatch) {
               return null
             }
-            return user
+            return {
+              id:user.userId,
+              ...user
+            }
+
           }
         }),
         Google({
@@ -63,7 +67,7 @@ const handler = NextAuth({
             }
           }
           return true;
-        }
+        },
       },
       pages:{
         signIn: '/signin'
