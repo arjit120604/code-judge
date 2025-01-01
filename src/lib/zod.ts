@@ -12,16 +12,33 @@ const signupSchema = z.object({
 })
 const testcaseSchema = z.object({
     input: z.string(),
-    output: z.string(),
     hidden: z.boolean().default(true)
 });
   
+const boilerplateSchema = z.object({
+  python: z.object({
+    full: z.string(),
+    minimal: z.string()
+  }),
+  javascript: z.object({
+    full: z.string(),
+    minimal: z.string()
+  }),
+  cpp: z.object({
+    full: z.string(),
+    minimal: z.string()
+  })
+});
+
 const problemSchema = z.object({
     title: z.string().min(3).max(100),
     description: z.string().min(10),
     difficulty: z.enum(["EASY", "MEDIUM", "HARD"]),
     points: z.number().int().positive().optional(),
-    testcases: z.array(testcaseSchema).min(1)
+    testcases: z.array(testcaseSchema).min(1),
+    solution: z.string().min(1),
+    boilerplate: boilerplateSchema,
+    fullBoilerplate: boilerplateSchema
 });
 
 const contestSchema = z.object({
@@ -34,8 +51,9 @@ const contestSchema = z.object({
       title: z.string().min(3),
       description: z.string(),
       difficulty: z.enum(["EASY", "MEDIUM", "HARD"]),
-      points: z.number().int().positive(),
-      testcases: z.array(testcaseSchema).min(1)
+      points: z.number().int().positive().optional(),
+      testcases: z.array(testcaseSchema).min(1),
+      problemId: z.string().optional(),
     })).min(1)
   });
 

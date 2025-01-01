@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { contestSchema, type ContestInput } from "@/lib/zod";
+import { TestCaseInput } from "@/components/TestCaseInput";
+import { ExistingProblemSelect } from "@/components/ExistingProblemSelect";
 
 export default function NewContestForm() {
   const [error, setError] = useState<string | null>(null);
@@ -143,19 +145,33 @@ export default function NewContestForm() {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Problems</h3>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => appendProblem({
-                title: "",
-                description: "",
-                difficulty: "EASY",
-                points: 100,
-                testcases: [{ input: "", output: "", hidden: true }]
-              })}
-            >
-              Add Problem
-            </Button>
+            <div className="flex gap-2">
+              <ExistingProblemSelect 
+                onSelect={(problem) => {
+                  appendProblem({
+                    title: problem.title,
+                    description: problem.description,
+                    difficulty: problem.difficulty,
+                    points: problem.points,
+                    problemId: problem.problemId,
+                    testcases: []
+                  });
+                }} 
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => appendProblem({
+                  title: "",
+                  description: "",
+                  difficulty: "EASY",
+                  points: 100,
+                  testcases: [{ input: "", hidden: true }]
+                })}
+              >
+                Add New Problem
+              </Button>
+            </div>
           </div>
 
           {problemFields.map((field, index) => (
@@ -296,11 +312,29 @@ function TestCases({ form, problemIndex }: { form: any; problemIndex: number }) 
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => append({ input: "", output: "", hidden: true })}
+          onClick={() => append({ input: "", hidden: true })}
         >
           Add Test Case
         </Button>
       </div>
+
+      <FormField
+        control={form.control}
+        name={`problems.${problemIndex}.solution`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Solution Code</FormLabel>
+            <FormControl>
+              <Textarea 
+                {...field} 
+                rows={10}
+                placeholder="Provide the solution code for this problem..." 
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
       {fields.map((field, testIndex) => (
         <div key={field.id} className="border rounded-lg p-4 space-y-4">
@@ -316,51 +350,11 @@ function TestCases({ form, problemIndex }: { form: any; problemIndex: number }) 
             </Button>
           </div>
 
-          <div className="grid gap-4">
-            <FormField
-              control={form.control}
-              name={`problems.${problemIndex}.testcases.${testIndex}.input`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Input</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} placeholder="Test case input..." />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name={`problems.${problemIndex}.testcases.${testIndex}.output`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Output</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} placeholder="Expected output..." />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name={`problems.${problemIndex}.testcases.${testIndex}.hidden`}
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between">
-                  <FormLabel>Hidden Test Case</FormLabel>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
+          <TestCaseInput
+            form={form}
+            problemIndex={problemIndex}
+            testIndex={testIndex}
+          />
         </div>
       ))}
     </div>

@@ -54,7 +54,7 @@ export default async function ContestsPage() {
           </div>
           
           {session && (
-            <Link href="/contests/new">
+            <Link href="/contest/new">
               <Button>Create Contest</Button>
             </Link>
           )}

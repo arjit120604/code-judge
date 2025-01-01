@@ -25,22 +25,25 @@ model User {
 }
 
 model Problem {
-  problemId   String     @unique @default(cuid())
-  createdAt   DateTime   @default(now())
-  contestId   String?
-  title       String
-  description String
-  contest     Contest?   @relation(fields: [contestId], references: [contestId])
-  difficulty  Difficulty
-  points      Int?
-  testcases   Testcase[]
-  hidden      Boolean    @default(false)
+  problemId       String     @unique @default(cuid())
+  createdAt       DateTime   @default(now())
+  contestId       String?
+  title           String
+  description     String
+  contest         Contest?   @relation(fields: [contestId], references: [contestId])
+  difficulty      Difficulty
+  points          Int?
+  testcases       Testcase[]
+  hidden          Boolean    @default(false)
+  boilerplate     String[]   @default([])
+  fullBoilerplate String[]   @default([])
+  solution        String
 }
 
 model Testcase {
   testcaseId String  @unique
   input      String
-  output     String
+  output     String?
   problemId  String
   problem    Problem @relation(fields: [problemId], references: [problemId])
   hidden     Boolean @default(true)
@@ -61,7 +64,7 @@ model Submission {
 }
 
 model Contest {
-  title String
+  title       String
   contestId   String       @unique @default(cuid())
   createdAt   DateTime     @default(now())
   startTime   DateTime?

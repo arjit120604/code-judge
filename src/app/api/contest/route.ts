@@ -69,13 +69,33 @@ export async function POST(req: Request) {
     const contest = await prisma.contest.create({
       data: {
         contestId: crypto.randomUUID(),
-        title: "hey",
+        title: validatedFields.data.title,
         description,
         startTime: new Date(startTime),
         endTime: new Date(endTime),
         hidden,
-        // adminId: user.userId || "cm57ahqms0000ro9qslpp424z"
-        adminId: "cm57ahqms0000ro9qslpp424z"
+        adminId: "cm58bcyn70001rowrfudrgztl",
+        problems: {
+          connect: validatedFields.data.problems
+            .filter(p => p.problemId)
+            .map(p => ({ problemId: p.problemId })),
+          create: validatedFields.data.problems
+            .filter(p => !p.problemId)
+            .map(p => ({
+              problemId: crypto.randomUUID(),
+              title: p.title,
+              description: p.description,
+              difficulty: p.difficulty,
+              points: p.points,
+              testcases: {
+                create: p.testcases.map(t => ({
+                  testcaseId: crypto.randomUUID(),
+                  input: t.input,
+                  hidden: t.hidden
+                }))
+              }
+            }))
+        }
       }
     });
 

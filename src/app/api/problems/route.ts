@@ -33,14 +33,6 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession();
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
     const body = await req.json();
     const validatedFields = problemSchema.safeParse(body);
     if (!validatedFields.success) {
@@ -51,6 +43,12 @@ export async function POST(req: Request) {
     }
     const { title, description, difficulty, points, testcases } = validatedFields.data;
 
+    const boilerplateCode = generateBoilerplate({
+      "Function name": title.toLowerCase().replace(/\s+/g, '_'),
+      "Input Fields": testcases.map(t => t.input),
+      "Output Field": "void" 
+    });
+
     const problem = await prisma.problem.create({
       data: {
         problemId: crypto.randomUUID(),
@@ -58,11 +56,11 @@ export async function POST(req: Request) {
         description,
         difficulty,
         points,
+        boilerplateCode: boilerplateCode,
         testcases: {
           create: testcases.map(testcase => ({
             testcaseId: crypto.randomUUID(),
             input: testcase.input,
-            output: testcase.output,
             hidden: testcase.hidden
           }))
         }
