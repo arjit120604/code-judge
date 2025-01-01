@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Contest {
+  id                String              @id
+  title             String
+  description       String
+  startTime         DateTime
+  endTime           DateTime
+  hidden            Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime
+  ContestProblem    ContestProblem[]
+  ContestSubmission ContestSubmission[]
+  Submission        Submission[]
+}
+
+model ContestPoints {
+  id        String @id
+  userId    String
+  contestId String
+  points    Int    @default(0)
+  rank      Int?
+  User      User   @relation(fields: [userId], references: [id])
+
+  @@unique([userId, contestId])
+}
+
+model ContestProblem {
+  id        String
+  contestId String
+  problemId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  index     Int
+  solved    Int      @default(0)
+  Contest   Contest  @relation(fields: [contestId], references: [id])
+  Problem   Problem  @relation(fields: [problemId], references: [id])
+
+  @@id([contestId, problemId])
+}
+
+model ContestSubmission {
+  id           String  @id
+  userId       String
+  contestId    String
+  problemId    String
+  languageId   Int?
+  submissionId String
+  points       Int     @default(0)
+  Contest      Contest @relation(fields: [contestId], references: [id])
+  Problem      Problem @relation(fields: [problemId], references: [id])
+  User         User    @relation(fields: [userId], references: [id])
+
+  @@unique([userId, contestId, problemId])
+}
+
+model DefaultCode {
+  id         String   @id
+  languageId Int
+  code       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+  problemId  String
+  Language   Language @relation(fields: [languageId], references: [id])
+  Problem    Problem  @relation(fields: [problemId], references: [id])
+}
+
+model Language {
+  id          Int           @id @default(autoincrement())
+  name        String
+  judge0Id    Int           @unique
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime
+  DefaultCode DefaultCode[]
+  Submission  Submission[]
+}
+
+model Problem {
+  id                String              @id
+  title             String
+  description       String
+  hidden            Boolean             @default(false)
+  slug              String              @unique
+  solved            Int                 @default(0)
+  difficulty        Difficulty
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime
+  ContestProblem    ContestProblem[]
+  ContestSubmission ContestSubmission[]
+  DefaultCode       DefaultCode[]
+  Submission        Submission[]
+}
+
+model Submission {
+  id              String           @id
+  userId          String
+  problemId       String
+  languageId      Int
+  code            String
+  fullCode        String
+  activeContestId String?
+  status          SubmissionResult @default(PENDING)
+  memory          Int?
+  time            Float?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime
+  Contest         Contest?         @relation(fields: [activeContestId], references: [id])
+  Language        Language         @relation(fields: [languageId], references: [id])
+  Problem         Problem          @relation(fields: [problemId], references: [id])
+  User            User             @relation(fields: [userId], references: [id])
+  TestCase        TestCase[]
+}
+
+model TestCase {
+  id               String         @id
+  status           TestCaseResult @default(PENDING)
+  index            Int
+  submissionId     String
+  memory           Int?
+  time             Float?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime
+  judge0TrackingId String?        @unique
+  Submission       Submission     @relation(fields: [submissionId], references: [id])
+}
+
+model User {
+  id                String              @id
+  email             String              @unique
+  name              String?
+  token             String?
+  password          String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime
+  role              UserRole            @default(USER)
+  ContestPoints     ContestPoints[]
+  ContestSubmission ContestSubmission[]
+  Submission        Submission[]
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum SubmissionResult {
+  AC
+  FAILED
+  PENDING
+}
+
+enum TestCaseResult {
+  AC
+  FAILED
+  TLE
+  MLE
+  COMPILATION_ERROR
+  RUNTIME_ERROR
+  PENDING
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
