@@ -1,7 +1,4 @@
-def maxElement(arr, brr):
-    # Write your code here
-    pass
-
+##user_code
 if __name__ == "__main__":
     n = int(input())
     arr = list(map(int, input().split()))

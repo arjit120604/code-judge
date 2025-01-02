@@ -49,7 +49,7 @@ export default class FullProblemDefinitionGenerator {
         return `#include <bits/stdc++.h>
 using namespace std;
 
-${this.outputFields[0].type} ${this.functionName}(${this.inputFields.map(f => `${f.type} ${f.name}`).join(', ')});
+##user_code
 
 int main() {
     ${inputReads}
@@ -60,10 +60,7 @@ int main() {
     }
 
     generatePython(): string {
-        return `def ${this.functionName}(${this.inputFields.map(f => f.name).join(', ')}):
-    # Write your code here
-    pass
-
+        return `##user_code
 if __name__ == "__main__":
     ${this.inputFields.map(field => {
         if (field.type.startsWith('vector<')) {
@@ -76,9 +73,7 @@ if __name__ == "__main__":
     }
 
     generateJavascript(): string {
-        const functionDef = `function ${this.functionName}(${this.inputFields.map(f => f.name).join(', ')}) {
-    // Write your code here
-}`;
+        const functionDef = `##user_code`;
 
         const inputHandling = this.inputFields.map(field => {
             if (field.type.startsWith('vector<')) {

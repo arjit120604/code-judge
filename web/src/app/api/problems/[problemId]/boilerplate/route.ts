@@ -26,8 +26,10 @@ export async function GET(
 ) {
   try {
     const problemId = params.problemId;
-    const problemsDir = path.join(process.cwd(), 'problems');
+    const problemsDir = process.env.PROBLEMS_DIR as string;
+
     const files = await fs.readdir(problemsDir);
+    
     
     // Convert problemId to filename format
     const problemFileName = `${problemId}.json`;

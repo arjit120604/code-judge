@@ -11,7 +11,7 @@ export async function POST(req: Request){
             where: {
                 OR:[
                     {email: validatedFields.data?.email},
-                    {username: validatedFields.data?.username}
+                    {name: validatedFields.data?.username}
                 ]
             }
         })
@@ -25,8 +25,8 @@ export async function POST(req: Request){
             data: {
                 email: validatedFields.data?.email ?? "",
                 name: validatedFields.data?.name ?? "",
-                username: validatedFields.data?.username ?? "",
-                password: hashedPassword
+                password: hashedPassword,
+                updatedAt: new Date(),
             }
         })
         return NextResponse.json({user})

@@ -59,7 +59,7 @@ export default function ProblemsList({ initialProblems }: ProblemsListProps) {
         </div>
         
         {filteredProblems.map((problem) => (
-          <div key={problem.problemId} className="grid grid-cols-12 gap-4 p-4 hover:bg-muted/50">
+          <div key={problem.id} className="grid grid-cols-12 gap-4 p-4 hover:bg-muted/50">
             <div className="col-span-6">{problem.title}</div>
             <div className="col-span-2">
               <span className={`px-2 py-1 rounded-full text-xs ${
@@ -70,9 +70,9 @@ export default function ProblemsList({ initialProblems }: ProblemsListProps) {
                 {problem.difficulty}
               </span>
             </div>
-            <div className="col-span-2">{problem.points || '-'}</div>
+            <div className="col-span-2">{problem.slug || '-'}</div>
             <div className="col-span-2">
-              <Link href={`/problems/${problem.problemId}`}>
+              <Link href={`/problems/${problem.id}`}>
                 <Button variant="outline" size="sm">Solve</Button>
               </Link>
             </div>

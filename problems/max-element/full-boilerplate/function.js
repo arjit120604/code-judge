@@ -1,6 +1,4 @@
-function maxElement(arr, brr) {
-    // Write your code here
-}
+##user_code
 
 // Do not modify code below
 process.stdin.resume();

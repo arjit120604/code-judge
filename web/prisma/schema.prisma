@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Contest {
-  id                String              @id
+  id                String              @id @default(cuid())
   title             String
   description       String
   startTime         DateTime
@@ -22,7 +22,7 @@ model Contest {
 }
 
 model ContestPoints {
-  id        String @id
+  id        String @id @default(cuid())
   userId    String
   contestId String
   points    Int    @default(0)
@@ -47,7 +47,7 @@ model ContestProblem {
 }
 
 model ContestSubmission {
-  id           String  @id
+  id           String  @id @default(cuid())
   userId       String
   contestId    String
   problemId    String
@@ -62,7 +62,7 @@ model ContestSubmission {
 }
 
 model DefaultCode {
-  id         String   @id
+  id         String   @id @default(cuid())
   languageId Int
   code       String
   createdAt  DateTime @default(now())
@@ -83,7 +83,7 @@ model Language {
 }
 
 model Problem {
-  id                String              @id
+  id                String              @id @default(cuid())
   title             String
   description       String
   hidden            Boolean             @default(false)
@@ -99,7 +99,7 @@ model Problem {
 }
 
 model Submission {
-  id              String           @id
+  id              String           @id @default(cuid())
   userId          String
   problemId       String
   languageId      Int
@@ -110,7 +110,7 @@ model Submission {
   memory          Int?
   time            Float?
   createdAt       DateTime         @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime         @updatedAt
   Contest         Contest?         @relation(fields: [activeContestId], references: [id])
   Language        Language         @relation(fields: [languageId], references: [id])
   Problem         Problem          @relation(fields: [problemId], references: [id])
@@ -119,26 +119,26 @@ model Submission {
 }
 
 model TestCase {
-  id               String         @id
+  id               String         @id @default(cuid())
   status           TestCaseResult @default(PENDING)
   index            Int
   submissionId     String
   memory           Int?
   time             Float?
   createdAt        DateTime       @default(now())
-  updatedAt        DateTime
+  updatedAt        DateTime       @updatedAt
   judge0TrackingId String?        @unique
   Submission       Submission     @relation(fields: [submissionId], references: [id])
 }
 
 model User {
-  id                String              @id
+  id                String              @id @default(cuid())
   email             String              @unique
   name              String?
   token             String?
   password          String?
   createdAt         DateTime            @default(now())
-  updatedAt         DateTime
+  updatedAt         DateTime            @updatedAt
   role              UserRole            @default(USER)
   ContestPoints     ContestPoints[]
   ContestSubmission ContestSubmission[]

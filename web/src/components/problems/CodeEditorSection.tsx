@@ -11,17 +11,39 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { editor } from "monaco-editor";
+import { toast } from "sonner";
 
-const DEFAULT_BOILERPLATE: Record<string, string> = {
-  python: "",
-  javascript: "",
-  cpp: ""
+interface BoilerplateVersion {
+  minimal: string;
+  full: string;
+}
+
+const DEFAULT_BOILERPLATE: Record<string, BoilerplateVersion> = {
+  python: { minimal: "", full: "" },
+  javascript: { minimal: "", full: "" },
+  cpp: { minimal: "", full: "" }
 };
+
+// Language ID mappings for Judge0 API (matches Language.judge0Id in schema)
+const LANGUAGE_IDS: Record<string, number> = {
+  python: 71,
+  javascript: 63,
+  cpp: 54
+};
+
+interface SubmissionResponse {
+  id: string;
+  status: 'PENDING' | 'AC' | 'FAILED';
+  memory?: number;
+  time?: number;
+  message?: string;
+}
 
 export default function CodeEditorSection({ problemId }: { problemId: string }) {
   const [language, setLanguage] = useState("python");
-  const [boilerplate, setBoilerplate] = useState<Record<string, string>>(DEFAULT_BOILERPLATE);
+  const [boilerplate, setBoilerplate] = useState<Record<string, BoilerplateVersion>>(DEFAULT_BOILERPLATE);
   const [loading, setLoading] = useState(true);
+  const [isFullBoilerplate, setIsFullBoilerplate] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
   useEffect(() => {
@@ -30,12 +52,7 @@ export default function CodeEditorSection({ problemId }: { problemId: string }) 
         const response = await fetch(`/api/problems/${problemId}/boilerplate`);
         const data = await response.json();
         if (data.boilerplate) {
-          // Extract minimal versions from the boilerplate
-          const minimalVersions = Object.entries(data.boilerplate).reduce((acc, [lang, code]) => ({
-            ...acc,
-            [lang]: code.minimal
-          }), {});
-          setBoilerplate(minimalVersions);
+          setBoilerplate(data.boilerplate as Record<string, BoilerplateVersion>);
         }
       } catch (error) {
         console.error("Failed to fetch boilerplate:", error);
@@ -55,10 +72,6 @@ export default function CodeEditorSection({ problemId }: { problemId: string }) 
         boilerplate[newLanguage].minimal;
       
       editorRef.current.setValue(code || "");
-      const monaco = editorRef.current.getModel();
-      if (monaco) {
-        monaco.setLanguage(newLanguage);
-      }
     }
   };
 
@@ -77,7 +90,52 @@ export default function CodeEditorSection({ problemId }: { problemId: string }) 
   };
 
   const handleSubmit = async () => {
-    // Submit logic will be implemented later
+    if (!editorRef.current) return;
+    
+    try {
+      setLoading(true);
+      const code = editorRef.current.getValue();
+      
+      const response = await fetch('/api/submission', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code,
+          problemId,
+          languageId: LANGUAGE_IDS[language],
+          fullCode: isFullBoilerplate ? 
+            boilerplate[language].full : 
+            boilerplate[language].minimal
+        }),
+      });
+
+      const data: SubmissionResponse = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to submit solution');
+      }
+      
+      if (data.status === 'AC') {
+        toast.success('Solution accepted!', {
+          description: `Memory: ${data.memory}KB, Time: ${data.time}ms`
+        });
+      } else if (data.status === 'FAILED') {
+        toast.error('Solution failed!', {
+          description: 'Check the test cases for more details'
+        });
+      } else {
+        toast.info('Solution submitted successfully!', {
+          description: 'Your solution is being evaluated'
+        });
+      }
+      
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Something went wrong');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -105,7 +163,12 @@ export default function CodeEditorSection({ problemId }: { problemId: string }) 
             {isFullBoilerplate ? "Simple Mode" : "Full Mode"}
           </Button>
         </div>
-        <Button onClick={handleSubmit}>Submit Solution</Button>
+        <Button 
+          onClick={handleSubmit} 
+          disabled={loading}
+        >
+          {loading ? "Submitting..." : "Submit Solution"}
+        </Button>
       </div>
 
       <div className="h-[calc(100vh-8rem)] border rounded-lg overflow-hidden">

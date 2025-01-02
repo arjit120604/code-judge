@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-int maxElement(vector<int> arr, vector<int> brr);
+##user_code
 
 int main() {
     int n;
