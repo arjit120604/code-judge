@@ -17,11 +17,6 @@ const arr = [];
 for(let i = 0; i < n; i++) {
     arr.push(parseInt(inputLines[lineIndex++]));
 }
-const n = parseInt(inputLines[lineIndex++]);
-const brr = [];
-for(let i = 0; i < n; i++) {
-    brr.push(parseInt(inputLines[lineIndex++]));
-}
-    const result = maxElement(arr, brr);
+    const result = maxElement(arr);
     console.log(result);
 });

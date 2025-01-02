@@ -8,9 +8,9 @@ interface Problem {
 }
 
 const languageIdtoExtension: Record<string, string> = {
-    71: 'py',
-    63: 'js',
-    54: 'cpp',
+    1: 'py',
+    2: 'js',
+    3: 'cpp',
 };
 
 
@@ -81,7 +81,7 @@ async function getProblemOutputs(slug: string): Promise<string[]> {
             } else {
                 const inputPromises = files.map(file => {
                     return new Promise<string>((resolve, reject) => {
-                        fs.readFile(`${MOUNT_PATH}/${slug}/inputs/${file}`, 'utf-8', (err, data) => {
+                        fs.readFile(`${MOUNT_PATH}/${slug}/outputs/${file}`, 'utf-8', (err, data) => {
                             if (err) {
                                 reject(err);
                             } else {

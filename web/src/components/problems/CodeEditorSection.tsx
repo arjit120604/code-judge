@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import CodeEditor from "@/components/CodeEditor";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,82 +12,62 @@ import {
 } from "@/components/ui/select";
 import type { editor } from "monaco-editor";
 import { toast } from "sonner";
+import { DefaultCode } from "@prisma/client";
+import axios from "axios";
 
-interface BoilerplateVersion {
-  minimal: string;
-  full: string;
+interface CodeEditorSectionProps {
+  problemId: string;
+  defaultCodes: DefaultCode[];
 }
 
-const DEFAULT_BOILERPLATE: Record<string, BoilerplateVersion> = {
-  python: { minimal: "", full: "" },
-  javascript: { minimal: "", full: "" },
-  cpp: { minimal: "", full: "" }
-};
-
-// Language ID mappings for Judge0 API (matches Language.judge0Id in schema)
-const LANGUAGE_IDS: Record<string, number> = {
+const JUDGE0ID: Record<string, number> = {
   python: 71,
   javascript: 63,
   cpp: 54
 };
 
-interface SubmissionResponse {
-  id: string;
-  status: 'PENDING' | 'AC' | 'FAILED';
-  memory?: number;
-  time?: number;
-  message?: string;
+const idToLanguage: Record<string, number> = {
+    python: 1,
+    javascript: 2,
+    cpp: 3,
 }
 
-export default function CodeEditorSection({ problemId }: { problemId: string }) {
+export default function CodeEditorSection({ problemId, defaultCodes }: CodeEditorSectionProps) {
   const [language, setLanguage] = useState("python");
-  const [boilerplate, setBoilerplate] = useState<Record<string, BoilerplateVersion>>(DEFAULT_BOILERPLATE);
-  const [loading, setLoading] = useState(true);
-  const [isFullBoilerplate, setIsFullBoilerplate] = useState(false);
+  const [loading, setLoading] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
-
-  useEffect(() => {
-    async function fetchBoilerplate() {
-      try {
-        const response = await fetch(`/api/problems/${problemId}/boilerplate`);
-        const data = await response.json();
-        if (data.boilerplate) {
-          setBoilerplate(data.boilerplate as Record<string, BoilerplateVersion>);
-        }
-      } catch (error) {
-        console.error("Failed to fetch boilerplate:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchBoilerplate();
-  }, [problemId]);
+  
+  const currentCode = defaultCodes.find(code => idToLanguage[language] === code.languageId)?.code || "";
 
   const handleLanguageChange = (newLanguage: string) => {
     setLanguage(newLanguage);
     if (editorRef.current) {
-      const code = isFullBoilerplate ? 
-        boilerplate[newLanguage].full : 
-        boilerplate[newLanguage].minimal;
-      
-      editorRef.current.setValue(code || "");
-    }
-  };
-
-  const toggleBoilerplateType = () => {
-    setIsFullBoilerplate(!isFullBoilerplate);
-    if (editorRef.current) {
-      const code = !isFullBoilerplate ? 
-        boilerplate[language].full : 
-        boilerplate[language].minimal;
-      editorRef.current.setValue(code || "");
+      const code = defaultCodes.find(code => idToLanguage[newLanguage] === code.languageId)?.code || "";
+      editorRef.current.setValue(code);
     }
   };
 
   const handleEditorMount = (editor: editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;
   };
+
+  const poll = async(submissionId: string, retries: number) => {
+    if (retries === 0){
+      return;
+    }
+
+    const response = await axios.get(
+      `/api/submission/?id=${submissionId}`
+    )
+    if (response.data.submission.status === "PENDING"){
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      poll(submissionId, retries - 1);
+    }else{
+      return ;
+    }
+    
+  }
 
   const handleSubmit = async () => {
     if (!editorRef.current) return;
@@ -104,32 +84,17 @@ export default function CodeEditorSection({ problemId }: { problemId: string }) 
         body: JSON.stringify({
           code,
           problemId,
-          languageId: LANGUAGE_IDS[language],
-          fullCode: isFullBoilerplate ? 
-            boilerplate[language].full : 
-            boilerplate[language].minimal
+          languageId: idToLanguage[language],
         }),
       });
 
-      const data: SubmissionResponse = await response.json();
+      const data = await response.json();
       
       if (!response.ok) {
         throw new Error(data.message || 'Failed to submit solution');
       }
       
-      if (data.status === 'AC') {
-        toast.success('Solution accepted!', {
-          description: `Memory: ${data.memory}KB, Time: ${data.time}ms`
-        });
-      } else if (data.status === 'FAILED') {
-        toast.error('Solution failed!', {
-          description: 'Check the test cases for more details'
-        });
-      } else {
-        toast.info('Solution submitted successfully!', {
-          description: 'Your solution is being evaluated'
-        });
-      }
+      toast.success('Solution submitted successfully!');
       
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Something went wrong');
@@ -138,31 +103,19 @@ export default function CodeEditorSection({ problemId }: { problemId: string }) 
     }
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <div className="flex gap-4 items-center">
-          <Select value={language} onValueChange={handleLanguageChange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select language" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="python">Python</SelectItem>
-              <SelectItem value="javascript">JavaScript</SelectItem>
-              <SelectItem value="cpp">C++</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            variant="outline"
-            onClick={toggleBoilerplateType}
-          >
-            {isFullBoilerplate ? "Simple Mode" : "Full Mode"}
-          </Button>
-        </div>
+        <Select value={language} onValueChange={handleLanguageChange}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select language" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="python">Python</SelectItem>
+            <SelectItem value="javascript">JavaScript</SelectItem>
+            <SelectItem value="cpp">C++</SelectItem>
+          </SelectContent>
+        </Select>
         <Button 
           onClick={handleSubmit} 
           disabled={loading}
@@ -174,9 +127,7 @@ export default function CodeEditorSection({ problemId }: { problemId: string }) 
       <div className="h-[calc(100vh-8rem)] border rounded-lg overflow-hidden">
         <CodeEditor
           language={language}
-          defaultValue={isFullBoilerplate ? 
-            boilerplate[language].full : 
-            boilerplate[language].minimal}
+          defaultValue={currentCode}
           height="100%"
           onMount={handleEditorMount}
         />

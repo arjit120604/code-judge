@@ -1,9 +1,8 @@
 /**
  * @param {arr: number[]
- * @param brr: number[]
  * @returns {number}
  */
-function maxElement(arr, brr) {
+function maxElement(arr) {
     // Write your code here
     return result;
 }

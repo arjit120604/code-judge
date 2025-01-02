@@ -18,6 +18,12 @@ async function getProblem(problemId: string) {
   return problem;
 }
 
+async function getDefaultCodes(problemId: string) {
+  return prisma.defaultCode.findMany({
+    where: { problemId },
+  });
+}
+
 export default async function ProblemPage({
   params,
 }: {
@@ -25,6 +31,9 @@ export default async function ProblemPage({
 }) {
     const problemId = (await params).problemId;
   const problem = await getProblem(problemId);
+  const defaultCodes = await getDefaultCodes(problemId);
+  console.log(defaultCodes);
+  console.log(problem)
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -58,7 +67,7 @@ export default async function ProblemPage({
             </div>
           </div>
           <Suspense fallback={<Skeleton className="h-full" />}>
-            <CodeEditorSection problemId={problemId} />
+            <CodeEditorSection problemId={problem.id} defaultCodes={defaultCodes} />
           </Suspense>
         </div>
       </main>

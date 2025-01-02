@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
-import { TestCaseResult } from "@prisma/client";
 // import { authOptions } from "@/lib/auth";
 import { getProblem } from "@/lib/problems";
-import { languages } from "monaco-editor";
 import axios from 'axios'
 
+const languageMap :Record<number,number> ={
+    3: 54,
+    1: 71,
+    2: 63
+}
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession();
@@ -38,12 +41,14 @@ export async function POST(req: NextRequest) {
         'user_code',
         data.code
     )
+    console.log(problem);
     console.log(process.env.JUDGE0_URI);
+    console.log(data)
     const response = await axios.post(
-        `${process.env.JUDGE0_URI}/submissions?base64_encoded=false`,
+        `${process.env.JUDGE0_URI}/submissions/batch/?base64_encoded=false`,
         {
-            submission: problem.inputs.map((input, index) => ({
-                language_id: data.languageId,
+            submissions: problem.inputs.map((input, index) => ({
+                language_id: languageMap[data.languageId],
                 source_code: problem.fullBoilerPlate,
                 stdin: input,
                 expected_output: problem.outputs[index],
@@ -51,7 +56,7 @@ export async function POST(req: NextRequest) {
             }))
         }
     )
-    console.log(response.statusText)
+    console.log(response)
     // console.log(response.data);
     // Create submission record
     const submission = await prisma.submission.create({
@@ -89,3 +94,15 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+// export async function GET(req: NextRequest) {
+//   const { searchParams } = new URL(req.url);
+//   const id = searchParams.get('id');
+//   const submission = await prisma.submission.findUnique({
+//     where: { id }
+//   });
+//   if (!submission) {
+//     return NextResponse.json({ message: "Submission not found" }, { status: 404 });
+//   }
+//   return NextResponse.json(submission);
+// }

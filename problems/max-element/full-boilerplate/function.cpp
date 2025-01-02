@@ -10,13 +10,7 @@ vector<int> arr(n);
 for(int i = 0; i < n; i++) {
     cin >> arr[i];
 }
-int n;
-cin >> n;
-vector<int> brr(n);
-for(int i = 0; i < n; i++) {
-    cin >> brr[i];
-}
-    int result = maxElement(arr, brr);
+    int result = maxElement(arr);
     cout << result << endl;
     return 0;
 }

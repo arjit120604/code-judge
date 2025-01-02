@@ -14,13 +14,6 @@ async function getContests() {
         gte: new Date()
       }
     },
-    include: {
-      admin: {
-        select: {
-          name: true,
-          username: true
-        }
-      },
       problems: {
         select: {
           problemId: true
