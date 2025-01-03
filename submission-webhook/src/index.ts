@@ -14,13 +14,30 @@ function getPoints(
 ): number {
     return 100;
 }
+const statusMap = (status: string) => {
+    switch (status) {
+      case "Accepted":
+        return "AC";
+      case "Wrong Answer":
+        return "FAILED";
+      case "Time Limit Exceeded":
+        return "TLE";
+      case "Memory Limit Exceeded":
+        return "MLE";
+      case "Runtime Error":
+        return "RUNTIME_ERROR";
+      case "Compilation Error":
+        return "COMPILATION_ERROR";
+      default:
+        return "FAILED";
+    }
 
 async function updateTestCase(req: Request) {
     const timeTaken = parseFloat(req.body.time);
     return prisma.testCase.update({
         where: { judge0TrackingId: req.body.token },
         data: {
-            status: req.body.description,
+            status: statusMap(req.body.status.description),
             time: timeTaken,
             memory: req.body.memory,
         },
