@@ -16,11 +16,12 @@ function getPoints(
 }
 
 async function updateTestCase(req: Request) {
+    const timeTaken = parseFloat(req.body.time);
     return prisma.testCase.update({
         where: { judge0TrackingId: req.body.token },
         data: {
             status: req.body.description,
-            time: req.body.time,
+            time: timeTaken,
             memory: req.body.memory,
         },
     });
