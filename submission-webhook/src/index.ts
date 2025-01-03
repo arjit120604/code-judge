@@ -64,15 +64,16 @@ async function upsertContestSubmission(response: any, points: number) {
 }
 
 app.post('/submission-webhook', async (req: Request, res: Response) => {
+    console.log(req.body)
     const testcase = await updateTestCase(req);
-
+    console.log(testcase)
     if (!testcase) {
         return res.status(404).json({ error: 'Test case not found' });
     }
 
     const allTestCases = await findAllTestCases(testcase.submissionId);
     const pendingTestCases = allTestCases.filter(testcase => testcase.status === 'PENDING');
-
+    console.log(pendingTestCases)
     if (pendingTestCases.length === 0) {
         const response = await updateSubmission(testcase, allTestCases);
 
