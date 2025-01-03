@@ -63,7 +63,7 @@ async function upsertContestSubmission(response: any, points: number) {
     });
 }
 
-app.post('/submission-webhook', async (req: Request, res: Response) => {
+app.put('/submission-webhook', async (req: Request, res: Response) => {
     console.log(req.body)
     const testcase = await updateTestCase(req);
     console.log(testcase)
