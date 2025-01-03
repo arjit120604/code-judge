@@ -31,6 +31,7 @@ const statusMap = (status: string) => {
       default:
         return "FAILED";
     }
+}
 
 async function updateTestCase(req: Request) {
     const timeTaken = parseFloat(req.body.time);
