@@ -5,9 +5,9 @@ import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/Navbar";
 
-async function getProblem(id: string) {
+async function getProblem(problemId: string) {
   const problem = await prisma.problem.findUnique({
-    where: { id: id },
+    where: { id: problemId },
     },
   );
 
@@ -18,13 +18,22 @@ async function getProblem(id: string) {
   return problem;
 }
 
+async function getDefaultCodes(problemId: string) {
+  return prisma.defaultCode.findMany({
+    where: { problemId },
+  });
+}
+
 export default async function ProblemPage({
   params,
 }: {
-  params: { id: string };
+  params: { problemId: string };
 }) {
-    const id = (await params).id;
-  const problem = await getProblem(id);
+    const problemId = (await params).problemId;
+  const problem = await getProblem(problemId);
+  const defaultCodes = await getDefaultCodes(problemId);
+  console.log(defaultCodes);
+  console.log(problem)
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -58,7 +67,7 @@ export default async function ProblemPage({
             </div>
           </div>
           <Suspense fallback={<Skeleton className="h-full" />}>
-            <CodeEditorSection problemId={id} />
+            <CodeEditorSection problemId={problem.id} defaultCodes={defaultCodes} />
           </Suspense>
         </div>
       </main>

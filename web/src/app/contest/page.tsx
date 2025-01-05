@@ -19,11 +19,8 @@ async function getContests() {
           problemId: true
         }
       }
-    },
-    orderBy: {
-      startTime: 'asc'
     }
-  });
+  );
   return contests;
 }
 

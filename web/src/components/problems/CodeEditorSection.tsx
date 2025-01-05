@@ -51,23 +51,29 @@ export default function CodeEditorSection({ problemId, defaultCodes }: CodeEdito
     editorRef.current = editor;
   };
 
-  const poll = async(submissionId: string, retries: number) => {
-    if (retries === 0){
+  const poll = async (submissionId: string, retries: number = 10) => {
+    if (retries === 0) {
+      toast.error("Submission timed out");
       return;
     }
 
-    const response = await axios.get(
-      `/api/submission/?id=${submissionId}`
-    )
-    if (response.data.submission.status === "PENDING"){
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      poll(submissionId, retries - 1);
-    }else{
-      return ;
+    try {
+      console.log("Polling for submission:", submissionId);
+      const response = await fetch(`/api/submission/${submissionId}`);
+      const data = await response.json();
+      console.log("Poll response:", data);
+      
+      if (data.status === "PENDING") {
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+        await poll(submissionId, retries - 1);
+      } else {
+        // toast.success(`Submission ${data.submission.status}`);
+      }
+    } catch (error) {
+      console.error("Polling error:", error);
+      toast.error("Error checking submission status");
     }
-    
-  }
+  };
 
   const handleSubmit = async () => {
     if (!editorRef.current) return;
@@ -89,14 +95,21 @@ export default function CodeEditorSection({ problemId, defaultCodes }: CodeEdito
       });
 
       const data = await response.json();
+      console.log("Submit response:", data);
       
       if (!response.ok) {
         throw new Error(data.message || 'Failed to submit solution');
       }
       
+      if (!data.submissionId) {
+        throw new Error('No submission ID received');
+      }
+
       toast.success('Solution submitted successfully!');
+      await poll(data.submissionId);
       
     } catch (error) {
+      console.error("Submit error:", error);
       toast.error(error instanceof Error ? error.message : 'Something went wrong');
     } finally {
       setLoading(false);

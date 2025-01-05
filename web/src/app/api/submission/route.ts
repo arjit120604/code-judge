@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     const problem = await getProblem(dbProblem.slug, data.languageId);
     problem.fullBoilerPlate = problem.fullBoilerPlate.replace(
-        'user_code',
+        '##user_code',
         data.code
     )
     console.log(problem);
